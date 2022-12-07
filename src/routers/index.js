@@ -1,6 +1,8 @@
 const homePage = require('./home')
+const AccountPage = require('./Accounts/accounts')
 
 function route(app){
+    app.use('/account',AccountPage)
     app.use('/product',homePage)
 }
 

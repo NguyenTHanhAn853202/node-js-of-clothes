@@ -4,22 +4,30 @@ const db = require('./configs/db')
 const route  = require('./routers')
 const methodOverride = require('method-override')
 const bodyParser = require('body-parser')
+const path = require('path');
 const app = express()
-const port = 3100
+const port = require('../src/utils/serverPort')
+const cors = require('cors')
 
-app.use(morgan('combined'));
+app.use(bodyParser.urlencoded({
+  extended:true
+}))
+
+app.use(bodyParser.json())
 
 app.use(methodOverride('_method'))
 
-app.use(bodyParser.json())
+app.use(cors())
 
-// parse application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: false }))
+app.use(morgan('combined'));
 
-// parse application/json
-app.use(bodyParser.json())
-app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')))
+
+app.use(express.json()) 
+app.use(express.urlencoded({ extended: true })) 
 db.connect();
+
+
 
 route(app);
 
@@ -27,3 +35,4 @@ route(app);
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
 })
+
