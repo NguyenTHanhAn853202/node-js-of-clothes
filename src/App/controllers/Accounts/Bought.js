@@ -4,9 +4,9 @@ class BoughtController{
 
     // get all Products that customer bought
     get(req, res, next){
-        const account = req.body.name
+        const account = req.body.userName
         
-        Account.findOne({name: account})
+        Account.findOne({userName: account})
             .then(account => res.json(account.bought))
             .catch(next)
     }
@@ -14,11 +14,11 @@ class BoughtController{
 
     //  buy product and update cart
     buyAndUpdate(req, res, next){
-        const account = req.body.name
+        const account = req.body.userName
         const idProduct = req.body.idProduct
         let number = req.body.number
 
-        Account.findOne({name: account})
+        Account.findOne({userName: account})
             .then(account =>{
                 const sameProduct = account.cart.find((item,index) =>item.idProduct===idProduct)
                 const indexCart = account.cart.indexOf(sameProduct);
@@ -33,10 +33,10 @@ class BoughtController{
 
     // delete product in bought
     delete(req, res, next){
-        const account = req.body.name
+        const account = req.body.userName
         const _id = req.body._id
 
-        Account.findOne({name: account})
+        Account.findOne({userName: account})
             .then(account =>{
                 const sameProduct = account.bought.find((item,index) => item._id ===_id)
                 const index = account.bought.indexOf(sameProduct)

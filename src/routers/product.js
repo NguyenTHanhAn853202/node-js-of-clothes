@@ -6,6 +6,8 @@ const router = express.Router();
 const serverName = require('os').hostname()
 const serverPort = require('../utils/serverPort')
 
+
+
 let nameImg = []
 const storage =  multer.diskStorage({
     destination: function (req, file, cb) {
@@ -66,7 +68,10 @@ router.post('/create',upload.array('imageOfColor', 10),(req, res, next)=>{
         .catch(next) 
 })
 
+
+router.get('/get-product',homeController.getProduct) 
 router.get('/open-image',homeController.getImage)
+router.get('/get-one-product',homeController.getOne)
 router.get('/get-products',homeController.get)
 
 

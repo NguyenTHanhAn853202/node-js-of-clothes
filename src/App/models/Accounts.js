@@ -4,14 +4,20 @@ slug = require('mongoose-slug-generator');
 mongoose.plugin(slug)
 
 
+
 const Account = new Schema(
     {
-        name: { type: String,required: true},
+        userName: { type: String,required: true},
         password:{type:String,required:true},
         cart:[
             {
+                name:{type:String},
                 idProduct: { type: String},
-                number: { type: Number, required: true}
+                number: { type: Number, required: true},
+                cost:{type:Number},
+                image: { type: String},
+                slugProduct:{type:String},
+                cartAt: { type: Date, default: Date.now },
             }
         ],
         createdAt: { type: Date, default: Date.now },

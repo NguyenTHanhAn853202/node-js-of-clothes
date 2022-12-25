@@ -1,4 +1,4 @@
-const homePage = require('./home')
+const homePage = require('./product')
 const AccountPage = require('./Accounts/accounts')
 
 function route(app){

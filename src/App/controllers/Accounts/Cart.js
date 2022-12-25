@@ -5,27 +5,41 @@ class CartController {
 
     // get all product in cart
     get(req, res, next){
-        Account.find()
-            .then(data =>res.json(data.cart))
-            .catch(next)
+        const name = req.body.userName
+        Account.findOne({userName:name})
+            .then(data =>{
+                res.json(data.cart)
+            })
+            .catch(next) 
     }
+
 
     // update cart (add product into cart) 
     update(req, res, next){
-        const account = req.body.name;
+        const account = req.body.userName;
         const idProduct = req.body.idProduct
         let number = req.body.number
-        Account.findOne({name:account})
+        const name = req.body.name
+        const cost = req.body.cost
+        const image = req.body.image
+        const slugProduct = req.body.slugProduct
+
+        console.log({idProduct,number,name,cost ,image,slugProduct});
+
+        Account.findOne({userName:account})
             .then(account =>{      
                 const sameProduct = account.cart.find((item,index) =>item.idProduct===idProduct)
                 if(sameProduct){
                     number += sameProduct.number
                     const index = account.cart.indexOf(sameProduct);
                     account.cart[index].number =number 
-                    res.json(account.cart[index])
+                    res.json({
+                        same:true,
+                        data:account.cart[index]
+                    })
                 }else{
-                    account.cart = [...account.cart,{idProduct,number}]
-                    res.json({idProduct,number})
+                    account.cart = [...account.cart,{idProduct,number,name,cost ,image,slugProduct}]
+                    res.json({same:false,data:{idProduct,number,name,cost ,image,slugProduct}})
                 }
                 account.save()
             })
@@ -34,16 +48,14 @@ class CartController {
     
     // delete a product in cart
     delete(req, res, next) {
-        const account  = req.body.name;
+        console.log(req.body);
+        const account  = req.body.userName;
         const idProduct = req.body.idProduct;
-
-        Account.findOne({name:account})
+        Account.findOne({userName:account})
             .then(account=>{
-                const sameProduct = account.cart.find((item,index) =>item.idProduct===idProduct)
-                const index = account.cart.indexOf(sameProduct);
-                account.cart.splice(index,1)
+                account.cart = account.cart.filter((item,index) => item.idProduct!==idProduct)
                 account.save()
-                res.json(sameProduct)
+                res.json({message:'successfully'})
             })
             .catch(next)
     }
