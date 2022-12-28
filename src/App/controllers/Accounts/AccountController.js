@@ -8,7 +8,7 @@ class AccountController{
     // take info form client
     take(req, res, next){
         const data = req.body
-        Account.findOne({userName:data.name},function (err, adventure){
+        Account.findOne({userName:data.userName},function (err, adventure){
             if (!adventure) {
                 const newAccount = new Account(data)
                 newAccount.save()
@@ -24,19 +24,21 @@ class AccountController{
     refreshToken(req, res, next){
         const token = req.body.token
         if(!token) return res.status(401).json({message: 'token is empty'})
-        RefreshToken.find()
+        Account.find({userName: req.body.userName})
             .then(data=>{
-                const refreshTokens = data[0].refreshTokens
+                const refreshTokens = data.refreshTokens
                 if(!refreshTokens.includes(token)) return res.status(403).json({message: 'refreshToken dont has in fereshTokens',check:false})
                 jwt.verify(token,refreshTokenSecret,(err,data)=>{
                     if(err) return res.status(403).json({message:'token was expired or not right'})
-                    const accessToken = jwt.sign({name:data.name},accessTokenSecret,{expiresIn:'30s'})
-                    res.status(200).json({
-                        token:{
-                            accessToken,
-                            expiresIn:Date.now() + (30*1000)
-                        }
-                    })
+                    const accessToken = jwt.sign({userName:data.userName},accessTokenSecret,{expiresIn:'30s'})
+                    if(accessToken){
+                        res.status(200).json({
+                            token:{
+                                accessToken,
+                                expiresIn:Date.now() + (30*1000)
+                            }
+                        })
+                    }
                 })
             })
             .catch(next)
@@ -52,11 +54,8 @@ class AccountController{
                 if(!data) return res.status(404).json({check:false})
                 const accessToken = jwt.sign(dataClient,accessTokenSecret,{expiresIn:'30s'})
                 const refreshToken = jwt.sign(dataClient,refreshTokenSecret)
-                RefreshToken.find()
-                    .then((data) => {
-                        data[0].refreshTokens.push(refreshToken)
-                        data[0].save()
-                    })
+                data.refreshTokens.push(refreshToken)
+                data.save()
                 res.status(200).json(
                     {
                         check:true,
@@ -76,10 +75,12 @@ class AccountController{
 
     logout(req, res, next){
         const token = req.body.token
-        RefreshToken.find()
+        const userName = req.body.userName
+        Account.findOne({userName:userName})
             .then((data) => {
-                data[0].refreshTokens = data[0].refreshTokens.filter(item => item !==token)
-                data[0].save()
+                if(!data) res.json({message:"do not Find data !"})
+                data.refreshTokens = data.refreshTokens.filter(item => item !==token)
+                data.save()
                 res.json({message:'login successful'})
             })
     }

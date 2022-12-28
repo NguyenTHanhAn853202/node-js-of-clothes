@@ -28,7 +28,9 @@ const Account = new Schema(
                 number: { type: Number, required: true},
                 boughtAt: { type: Date, default: Date.now },
             }
-        ]
+        ],
+        refreshTokens:{type:Array},
+        whiteListFreshTokens: {type:Array},
     },
     { timeseries: {
         timeField: 'timestamp_property',
