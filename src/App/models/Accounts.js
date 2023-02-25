@@ -2,13 +2,20 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 slug = require('mongoose-slug-generator');
 mongoose.plugin(slug)
-
-
+const serverName = require('os').hostname()
+const serverPort = require('../../utils/serverPort')
 
 const Account = new Schema(
     {
         userName: { type: String,required: true},
         password:{type:String,required:true},
+        name:{type:String,maxLength:40},
+        avatar:{type:String,default:`http://${serverName}:${serverPort}/product/open-image?image=avatarDefault.jpg`},
+        phoneNumber:{type:String,maxLength:15},
+        birthday:{type:Date},
+        address:{type:String},
+        email:{type:String},
+        sex:{type:String},
         cart:[
             {
                 name:{type:String},

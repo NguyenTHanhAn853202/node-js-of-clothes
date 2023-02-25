@@ -8,16 +8,20 @@ const path = require('path');
 const app = express()
 const port = require('../src/utils/serverPort')
 const cors = require('cors')
+const cookieParser = require('cookie-parser')
+
 
 app.use(bodyParser.urlencoded({
   extended:true
 }))
 
+app.use(cookieParser())
+
 app.use(bodyParser.json())
 
 app.use(methodOverride('_method'))
 
-app.use(cors())
+app.use(cors({credentials: true,origin:true}))
 
 app.use(morgan('combined'));
 

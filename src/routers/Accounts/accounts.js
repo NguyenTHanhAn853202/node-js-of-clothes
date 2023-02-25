@@ -2,6 +2,7 @@ const AccountController = require('../../App/controllers/Accounts/AccountControl
 const BoughtController = require('../../App/controllers/Accounts/Bought')
 const CartController = require('../../App/controllers/Accounts/Cart')
 const authenToken = require('../../utils/authenToken')
+const uploadFile = require('../../utils/uploadFiles')
 
 const express = require('express')
 const router = express.Router()
@@ -9,7 +10,7 @@ const router = express.Router()
 
 
 // account
-router.post('/create',AccountController.take)
+router.post('/create',AccountController.register)
 router.post('/login',AccountController.login)
 router.post('/logout',AccountController.logout)
 router.post('/refreshTokens',AccountController.refreshToken)
@@ -26,6 +27,9 @@ router.put('/bought/update',authenToken,BoughtController.buyAndUpdate)
 router.delete('/bought/delete',authenToken,BoughtController.delete)
 
 router.get('/',AccountController.get)
+
+// info
+router.post('/info-of-user',uploadFile().single('image'),AccountController.updateInfoOfUser)
 
 
 module.exports = router

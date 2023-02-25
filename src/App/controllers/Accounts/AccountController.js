@@ -1,12 +1,12 @@
 const Account = require('../../models/Accounts')
-const RefreshToken = require('../../models/RefreshToken')
 const {accessTokenSecret,refreshTokenSecret} = require('../../../utils/keySecret')
 const jwt = require('jsonwebtoken')
-
+const serverPort = require('../../../utils/serverPort')
+const serverName = require('os').hostname()
 class AccountController{
 
     // take info form client
-    take(req, res, next){
+    register(req, res, next){
         const data = req.body
         Account.findOne({userName:data.userName},function (err, adventure){
             if (!adventure) {
@@ -23,17 +23,43 @@ class AccountController{
 
     refreshToken(req, res, next){
         const token = req.body.token
-        if(!token) return res.status(401).json({message: 'token is empty'})
-        Account.find({userName: req.body.userName})
+        if(!token) return res.status(401).json({
+            token:{
+                message:'clien do not send token',
+                accessToken:'',
+                expiresIn: 0
+            }
+        })
+        if(!req.body.userName) return res.json({
+            token:{
+                message:'user is invalid',
+                accessToken: '',
+                expiresIn: 0
+            }
+        });
+        Account.findOne({userName: req.body.userName})
             .then(data=>{
-                const refreshTokens = data.refreshTokens
-                if(!refreshTokens.includes(token)) return res.status(403).json({message: 'refreshToken dont has in fereshTokens',check:false})
+                const refreshTokens = data.refreshTokens || []
+                if(!refreshTokens.includes(token)) return res.status(403).json({
+                    token:{
+                        message:'token do not correct',
+                        accessToken:'',
+                        expiresIn: 0
+                    }
+                })
                 jwt.verify(token,refreshTokenSecret,(err,data)=>{
-                    if(err) return res.status(403).json({message:'token was expired or not right'})
+                    if(err) return res.status(403).json({
+                        token:{
+                            message:'token expired or invalid',
+                            accessToken:'',
+                            expiresIn: 0
+                        }
+                    })
                     const accessToken = jwt.sign({userName:data.userName},accessTokenSecret,{expiresIn:'30s'})
                     if(accessToken){
                         res.status(200).json({
                             token:{
+                                message:'successfully',
                                 accessToken,
                                 expiresIn:Date.now() + (30*1000)
                             }
@@ -56,8 +82,15 @@ class AccountController{
                 const refreshToken = jwt.sign(dataClient,refreshTokenSecret)
                 data.refreshTokens.push(refreshToken)
                 data.save()
-                res.status(200).json(
+                res.cookie('id',data._id,{
+                    
+                }).cookie('userName',data.userName,{
+                    
+                }).cookie('name',data?.name).cookie('phoneNumber',data?.phoneNumber).cookie('avatar',data?.avatar).cookie('email',data?.email).cookie('birthday',data?.birthday).cookie('sex',data?.sex).cookie('address',data?.address)            
+                return res.status(200).json(
                     {
+                        id:data._id,
+                        name:data.name,
                         check:true,
                         message: 'successfully',
                         refreshToken,
@@ -80,8 +113,9 @@ class AccountController{
             .then((data) => {
                 if(!data) res.json({message:"do not Find data !"})
                 data.refreshTokens = data.refreshTokens.filter(item => item !==token)
-                data.save()
-                res.json({message:'login successful'})
+                data.save();
+                res.clearCookie('avatar').clearCookie('name').clearCookie('email').clearCookie('phoneNumber').clearCookie('birthday').clearCookie('sex').clearCookie('id')
+                return res.json({message:'login successful'})
             })
     }
 
@@ -93,6 +127,51 @@ class AccountController{
             })
             .catch(next)
     }
+
+    updateInfoOfUser(req, res,next) {
+        let objectFields = {}
+        const name = req.body.name
+        const avatar = req?.file?.filename 
+        const phoneNumber = req.body?.phoneNumber
+        const birthday = req.body?.birthday
+        const sex = req.body?.sex
+        const address = req.body?.address
+        const email = req.body?.email
+
+        if(phoneNumber) {
+            phoneNumber.split('').forEach(item=>{
+                if(item>'9' || item < '0') return res.json({ success: false, message:'phone number is invalid'})
+            })
+        }
+        objectFields = name? {...objectFields,name}:{...objectFields}
+        objectFields = avatar? {...objectFields,avatar:`http://${serverName}:${serverPort}/product/open-image?image=${avatar}`}:{...objectFields}
+        objectFields = phoneNumber? {...objectFields,phoneNumber}:{...objectFields}
+        objectFields = birthday? {...objectFields,birthday}:{...objectFields}
+        objectFields = sex? {...objectFields,sex}:{...objectFields}
+        objectFields = email? {...objectFields,email}:{...objectFields}
+        objectFields = address? {...objectFields,address}:{...objectFields}
+
+
+        Account.findOne({_id:req.body.id})
+            .then(account=>{
+                Object.assign(account,objectFields)
+                account.save()
+                    .then(data=>{
+                        for (const key in objectFields) {
+                            res.cookie('id',data._id,{
+                    
+                            }).cookie('userName',data.userName,{
+                                
+                            }).cookie('name',data?.name).cookie('phoneNumber',data?.phoneNumber).cookie('avatar',data?.avatar).cookie('email',data?.email).cookie('birthday',data?.birthday).cookie('sex',data?.sex).cookie('address',data?.address)            
+                            res.cookie(key,objectFields[key])
+                        }
+                        res.status(200).json({...objectFields,success:true})
+                    })
+                    .catch(next)
+            })
+            .catch(next)
+    }
+
 
 }
 
