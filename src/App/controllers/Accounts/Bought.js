@@ -28,7 +28,6 @@ class BoughtController{
                 res.json({idProduct,number})
             })
             .catch(next)
-
     }
 
     // delete product in bought

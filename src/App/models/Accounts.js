@@ -29,13 +29,6 @@ const Account = new Schema(
         ],
         createdAt: { type: Date, default: Date.now },
         updatedAt: { type: Date, default: Date.now },
-        bought:[
-            {
-                idProduct: { type: String},
-                number: { type: Number, required: true},
-                boughtAt: { type: Date, default: Date.now },
-            }
-        ],
         refreshTokens:{type:Array},
         whiteListFreshTokens: {type:Array},
     },

@@ -119,6 +119,27 @@ class AccountController{
             })
     }
 
+    // get info of user by cookies
+
+    getInfoOfUserCookie(req, res, next) {
+        const id= req.query.id;
+        const userName = req.query.userName
+        Account.findOne({_id:id,userName:userName})
+            .then(data=>{
+                if(data){
+                    res.cookie('id',data._id,{
+                    
+                    }).cookie('userName',data.userName,{
+                        
+                    }).cookie('name',data?.name).cookie('phoneNumber',data?.phoneNumber).cookie('avatar',data?.avatar).cookie('email',data?.email).cookie('birthday',data?.birthday).cookie('sex',data?.sex).cookie('address',data?.address)
+                    res.status(200).json({success:true,data})
+                }else{
+                    res.status(403).json({message:'check id or userName',title:'error'})
+                }
+            })
+            .catch(next)
+    }
+
     // get all accounts
     get(req, res, next){
         Account.find({_id:req.body.idProduct})

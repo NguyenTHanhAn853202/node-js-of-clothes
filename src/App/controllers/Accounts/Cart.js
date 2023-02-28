@@ -24,8 +24,6 @@ class CartController {
         const image = req.body.image
         const slugProduct = req.body.slugProduct
 
-        console.log({ idProduct, number, name, cost, image, slugProduct });
-
         Account.findOne({ userName: account })
             .then(account => {
                 const sameProduct = account.cart.find((item, index) => item.idProduct === idProduct)

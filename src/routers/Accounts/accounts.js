@@ -22,14 +22,13 @@ router.post('/cart/update',authenToken,CartController.update)
 router.delete('/cart/delete',authenToken,CartController.delete)
 
 // bought
-router.get('/bought/get',authenToken,BoughtController.get)
-router.put('/bought/update',authenToken,BoughtController.buyAndUpdate)
-router.delete('/bought/delete',authenToken,BoughtController.delete)
 
 router.get('/',AccountController.get)
 
 // info
 router.post('/info-of-user',uploadFile().single('image'),AccountController.updateInfoOfUser)
+
+router.get('/get-info-of-user',AccountController.getInfoOfUserCookie)
 
 
 module.exports = router
