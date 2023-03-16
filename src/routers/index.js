@@ -1,11 +1,13 @@
-const homePage = require('./product')
-const AccountPage = require('./Accounts/accounts')
-const Oder = require('./Oder/index')
+const Product = require('./Product')
+const Account = require('./Accounts')
+const Oder = require('./Oder')
+const Cart = require('./Cart')
 
 function route(app){
-    app.use('/account',AccountPage)
-    app.use('/product',homePage)
+    app.use('/account',Account)
+    app.use('/product',Product)
     app.use('/oder',Oder)
+    app.use('/cart',Cart)
 }
 
 module.exports = route;

@@ -9,6 +9,8 @@ const OderSchema = new Schema(
         infoOfUser:{
             type: mongoose.Schema.Types.ObjectId, ref: 'Account' 
         },
+        typeOfPayment: {type: String, required: true},
+        codeDiscount: {type: String},
         createdAt: { type: Date, default: Date.now },
         updatedAt: { type: Date, default: Date.now },
     },

@@ -11,7 +11,6 @@ function uploadFile() {
     })
   const upload = multer({ storage: storage })
   return upload
-  
 }
 
 module.exports = uploadFile

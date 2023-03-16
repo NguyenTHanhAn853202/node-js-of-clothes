@@ -9,20 +9,12 @@ const Product = new Schema(
     {
         name: { type: String, default: 'san pham chua co ten' },
         type:{ type: String},
-        imageDefault: { type: String},
-        costDefault: { type: Number},
-        sizeDefault: { type: Array},
-        number: { type:Number},
-        description: { type: String, default:'chưa có mô tả sản phẩm'},
-        image:[
-            {
-                nameOfColor: { type: String, default: 'mau tong hop'},
-                imageOfColor:{ type: String},
-                costOfColor:{ type: Number},
-                numberOfColor:{type: Number},
-                sizeOfColor:{ type: Array}
-            }
-        ],
+        description: { type: String, default: ''},
+        image: { type: String},
+        price: { type: Number},
+        product:{type:Array},
+        number:Number,
+        color:Array,
         createdAt: { type: Date, default: Date.now },
         updatedAt: { type: Date, default: Date.now },
         slug: { type: String, slug: "name",unique: true},

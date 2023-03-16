@@ -3,6 +3,9 @@ const {accessTokenSecret,refreshTokenSecret} = require('../../../utils/keySecret
 const jwt = require('jsonwebtoken')
 const serverPort = require('../../../utils/serverPort')
 const serverName = require('os').hostname()
+
+const isEmail = /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+
 class AccountController{
 
     // take info form client
@@ -19,6 +22,51 @@ class AccountController{
                 res.send(false)
             }
         }) 
+    }
+
+    async registerManager(req, res, next){
+        const {userName,userNameManager,password,rePassword,role,yourPassword} = req.body
+        const checkAccount = await Account.findOne({userName:userName})
+        if(checkAccount) return res.status(200).json({
+            success:false,
+            message:'user name was exits'
+        })
+        if(!isEmail.test(userName.trim())) return res.status(200).json({
+            success:false,
+            message:'check user name'
+        })
+        const length = password.length > 7;
+        const uppercase = password.split('').some((item) => item.toUpperCase() === item);
+        const number = password.split('').some((item) => !isNaN(item));
+        const speacial = password
+            .split('')
+            .some((item) => (item < '0' || item > '9') && (item < 'A' || item > 'Z') && (item < 'a' || item > 'z'));
+        if(!(length && uppercase && number && speacial)) res.status.json({
+            success:false,
+            message:'password is invalid'
+        })
+        if(password !== rePassword) return res.status.json({
+            success:false,
+            message:'password is not same'
+        })
+        const account = await Account.findOne({userName:userNameManager})
+        if(account.password !== yourPassword) return res.status(200).json({
+            success:false,
+            message:'check your password'
+        })
+        if(role.toLowerCase() !=='manager' && role.toLowerCase() !=='employee') return res.status(200).json({
+            success:false,
+            message:'check role'
+        })     
+        
+        const newAccount = new Account({userName,password,role:role.toLowerCase()})
+        newAccount.save()
+            .then(data=>res.status(200).json({
+                success:true,
+                message:'creating successfully',
+                data
+            }))
+            .catch(next)
     }
 
     refreshToken(req, res, next){
@@ -86,11 +134,18 @@ class AccountController{
                     
                 }).cookie('userName',data.userName,{
                     
-                }).cookie('name',data?.name).cookie('phoneNumber',data?.phoneNumber).cookie('avatar',data?.avatar).cookie('email',data?.email).cookie('birthday',data?.birthday).cookie('sex',data?.sex).cookie('address',data?.address)            
+                }).cookie('name',data.name||'')
+                .cookie('phoneNumber',data.phoneNumber||'')
+                .cookie('avatar',data.avatar||'')
+                .cookie('email',data.email||'')
+                .cookie('birthday',data.birthday||'')
+                .cookie('sex',data.sex||'')
+                .cookie('address',data.address||'')            
                 return res.status(200).json(
                     {
                         id:data._id,
                         name:data.name,
+                        role:data.role,
                         check:true,
                         message: 'successfully',
                         refreshToken,
@@ -114,7 +169,7 @@ class AccountController{
                 if(!data) res.json({message:"do not Find data !"})
                 data.refreshTokens = data.refreshTokens.filter(item => item !==token)
                 data.save();
-                res.clearCookie('avatar').clearCookie('name').clearCookie('email').clearCookie('phoneNumber').clearCookie('birthday').clearCookie('sex').clearCookie('id')
+                res.clearCookie('avatar').clearCookie('name').clearCookie('email').clearCookie('phoneNumber').clearCookie('birthday').clearCookie('sex').clearCookie('id').clearCookie('address').clearCookie('userName')
                 return res.json({message:'login successful'})
             })
     }
@@ -131,7 +186,13 @@ class AccountController{
                     
                     }).cookie('userName',data.userName,{
                         
-                    }).cookie('name',data?.name).cookie('phoneNumber',data?.phoneNumber).cookie('avatar',data?.avatar).cookie('email',data?.email).cookie('birthday',data?.birthday).cookie('sex',data?.sex).cookie('address',data?.address)
+                    }).cookie('name',data.name||'')
+                    .cookie('phoneNumber',data.phoneNumber||'')
+                    .cookie('avatar',data.avatar||'')
+                    .cookie('email',data.email||'')
+                    .cookie('birthday',data.birthday||'')
+                    .cookie('sex',data.sex||'')
+                    .cookie('address',data.address||'') 
                     res.status(200).json({success:true,data})
                 }else{
                     res.status(403).json({message:'check id or userName',title:'error'})
@@ -183,13 +244,38 @@ class AccountController{
                     
                             }).cookie('userName',data.userName,{
                                 
-                            }).cookie('name',data?.name).cookie('phoneNumber',data?.phoneNumber).cookie('avatar',data?.avatar).cookie('email',data?.email).cookie('birthday',data?.birthday).cookie('sex',data?.sex).cookie('address',data?.address)            
+                            }).cookie('name',data.name||'')
+                            .cookie('phoneNumber',data.phoneNumber||'')
+                            .cookie('avatar',data.avatar||'')
+                            .cookie('email',data.email||'')
+                            .cookie('birthday',data.birthday||'')
+                            .cookie('sex',data.sex||'')
+                            .cookie('address',data.address||'')    
                             res.cookie(key,objectFields[key])
                         }
                         res.status(200).json({...objectFields,success:true})
                     })
                     .catch(next)
             })
+            .catch(next)
+    }
+
+    async createAccountForEmployee(req, res, next) {
+        const {userName,password, rePassword,role} = req.body
+        if(password !==rePassword) return res.status(403).json({
+            title:'error',
+            success:false,
+            message:'dont same the password'
+        })
+        const account = await Account.findOne({userName:userName})
+        if(account) return res.status(403).json({
+            title:'error',
+            success:false,
+            message:'userName is exits'
+        })
+        const data = new Account({ userName: userName,role,password })
+        data.save()
+            .then(data=>res.status(200).json({title:'success',success:true,data}))
             .catch(next)
     }
 

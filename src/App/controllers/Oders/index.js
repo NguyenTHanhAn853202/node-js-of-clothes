@@ -1,13 +1,16 @@
 const OderSchema = require('../../models/Oder')
 const Account = require('../../models/Accounts')
 const Bought = require('../../models/Bought')
+const Cart = require('../../models/Cart')
 const limit = 10
 class OderController {
     
     // saving user's information bought
-    create(req,res,next) {
+    async create(req,res,next) {
         const userID = req.body.userID
         const infoOfOder = req.body.infoOfOder
+        const typeOfPayment = req.body.typeOfPayment
+        const codeDiscount = req.body.codeDiscount
         if(!Array.isArray(infoOfOder) && infoOfOder?.length>0) {
             return res.json({title:'error',message:"oder's information is not array",success:false})
         }
@@ -18,7 +21,7 @@ class OderController {
                 message:'input infoOfOder or userID'
             })
         }
-        const newOder = new OderSchema({infoOfOder: infoOfOder,infoOfUser:userID})
+        const newOder = new OderSchema({infoOfOder: infoOfOder,infoOfUser:userID,typeOfPayment,codeDiscount})
         if(newOder){
             newOder.save()
                 .then(data=>{
@@ -27,20 +30,15 @@ class OderController {
                     }
                 })   
         }
-        Bought.create({userID,bought:infoOfOder})
-            .then((data) =>{
-                if(!data) return res.json({success:false,title:'Error',message:'Error at new bought'})
+        
+        await Cart.deleteMany({ _id: { $in: infoOfOder.map(item => item._id) } });
+        const cart = await Cart.find().populate('idProduct','name slug')
+            return res.status(200).json({
+                title:'success',
+                success:true,
+                data:cart
             })
-            .catch(next)
-        Account.findOne({_id:userID})
-            .then((data) =>{
-                infoOfOder.forEach(item => {
-                    data.cart = data.cart.filter(fill=> fill.idProduct !== item.idProduct);
-                });
-                data.save() 
-                res.status(200).json({success: true,data:data?.cart,title:'oder product'})
-            })
-            .catch(next)
+
     }
     // lấy thông tin oder của khách
     getAnOder(req, res,next){

@@ -1,17 +1,15 @@
 const Product = require('../../models/Product')
-
+const serverPort = require('../../../utils/serverPort')
+const serverName = require('os').hostname()
 const fs = require('fs')
-
-
 
 class ProductController {
     
     get(req, res,next) {
         const nameSearch = req.query.find
-        Product.find().sortable(req)
+        Product.find({name:{$regex:new RegExp(nameSearch)}}).sortable(req)
             .then(data=>{
-                const newData = data.filter(product => product.name.includes(nameSearch))
-                return res.status(200).json(newData)
+                return res.status(200).json(data)
             })
             .catch(next)
     }
@@ -30,8 +28,8 @@ class ProductController {
     }
     
     getImage(req, res, next) {
-        const imgName = `src/public/images/${req.query.image}`
-        fs.readFile(imgName,(err, data)=>{
+        const id = `src\\public\\images\\${req.query.image}`
+        fs.readFile(id,(err, data)=>{
             res.end(data)
         })
     }
@@ -55,48 +53,37 @@ class ProductController {
 
     uploadProduct(req, res, next){
         const file = req.files
-        console.log(req.files);
-        return res.json({file:file,message:'successfully uploaded'})
-        const name = req.body.name
-        const costDefualt = req.body.costDefualt
-        const sizeDefualt = req.body.sizeDefualt     
-        const number = req.body.number
-        const type = req.body.type
-        
-        const nameOfColor = Array.isArray(req.body.nameOfColor)?req.body.nameOfColor:[req.body.nameOfColor]
-        const costOfColor = Array.isArray(req.body.costOfColor)?req.body.costOfColor:[req.body.costOfColor]
-        const numberOfColor = Array.isArray(req.body.numberOfColor)?req.body.numberOfColor:[req.body.numberOfColor]
-        const sizeOfColor = Array.isArray(req.body.sizeOfColor)?req.body.sizeOfColor:[req.body.sizeOfColor]
-        const imageDefualt = `http://${serverName}:${serverPort}/product/open-image?image=${nameImg[0]}`;
-        const image = []
-    
-        for (let index = 0; index < nameImg.length; index++) {
-          const contantData ={
-            nameOfColor: nameOfColor[index],
-            imageOfColor:`http://${serverName}:${serverPort}/product/open-image?image=${nameImg[index]}`,
-            costOfColor:costOfColor[index]?costOfColor[index]:costDefualt,
-            numberOfColor:numberOfColor[index],
-            sizeOfColor:sizeOfColor[index]?numberOfColor[index]:sizeDefualt,
-          };
-          image.push(contantData);
+        const {dataProduct,name,type,description} = req.body
+        let number=0;;
+        const color = []
+        const newDataProduct = JSON.parse(dataProduct)
+        const storeData = newDataProduct.map((item,i)=>{
+            number+=item?.number || 0
+            color.push(item?.color || '')
+            return {
+                imagePath:file[i].originalname===item.fileName && file[i].size===item.fileSize?`http://${serverName}:${serverPort}/product/open-image?image=${file[i].filename}`:'',
+                price:item?.price||0,
+                size:item?.size||[],
+                number:item?.number||0,
+                color:item?.color||'',
+            }
+        })
+        const data = new Product({
+            image:storeData[0]?.imagePath,
+            price:storeData[0]?.price,
+            name,
+            color:color,
+            product:storeData,
+            type,
+            description,
+            number
+        })
+        if(data){
+            data.save()
+                .then(data => res.status(200).json({title:'success',success:true,data}))
+                .catch(next)
         }
-    
-        nameImg =[]
-    
-        const dataProduct = {
-          name:name,
-          image:image,
-          imageDefualt:imageDefualt,
-          costDefualt:costDefualt,
-          sizeDefualt:sizeDefualt,
-          number:number,
-          type:type
-        }
-    
-        // const product = new Product(dataProduct)
-        // product.save()
-        //     .then(product => res.json(product))
-        //     .catch(next) 
+
     }
 }
 
