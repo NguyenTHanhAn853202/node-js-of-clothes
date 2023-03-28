@@ -8,14 +8,18 @@ const router = express.Router()
 
 
 
+// manage account employee
+router.get('/account-employee',manager,authenToken,AccountController.getAccountEmployee)
+router.post('/disable-account-employee',authenToken,manager,AccountController.disableAccount)
+
 // account
 router.post('/create',AccountController.register)
-router.post('/create-manager',manager,AccountController.registerManager)
+router.post('/create-manager',authenToken,manager,AccountController.registerManager)
 
 router.post('/login',AccountController.login)
 router.post('/logout',AccountController.logout)
 router.post('/refreshTokens',AccountController.refreshToken)
-router.post('/create-account-employee',AccountController.createAccountForEmployee)
+router.post('/create-account-employee',authenToken,AccountController.createAccountForEmployee)
 
 // info
 router.post('/info-of-user',uploadFile().single('image'),authenToken,AccountController.updateInfoOfUser)

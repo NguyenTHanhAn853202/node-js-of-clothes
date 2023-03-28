@@ -2,6 +2,7 @@ const Account = require('../../models/Accounts')
 const {accessTokenSecret,refreshTokenSecret} = require('../../../utils/keySecret')
 const jwt = require('jsonwebtoken')
 const serverPort = require('../../../utils/serverPort')
+const mongoose  = require('mongoose')
 const serverName = require('os').hostname()
 
 const isEmail = /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
@@ -125,7 +126,8 @@ class AccountController{
         const password = req.body.password
         Account.findOne({userName: name,password:password})
             .then((data) => {
-                if(!data) return res.status(404).json({check:false})
+                if(!data) return res.status(200).json({check:false,message:'Sai tài khoản hoặc mật khẩu'})
+                if(data?.disable) return res.status(200).json({check:false,message:'Tài khoản đã bị vô hiệu hóa'})
                 const accessToken = jwt.sign(dataClient,accessTokenSecret,{expiresIn:'30s'})
                 const refreshToken = jwt.sign(dataClient,refreshTokenSecret)
                 data.refreshTokens.push(refreshToken)
@@ -276,6 +278,49 @@ class AccountController{
         const data = new Account({ userName: userName,role,password })
         data.save()
             .then(data=>res.status(200).json({title:'success',success:true,data}))
+            .catch(next)
+    }
+
+    async getAccountEmployee(req,res,next){
+        try {
+            const isDisabled = req.query.isDisabled
+            const name = req.query.name.trim()||''
+            const role = req.query.role.trim()||''
+            let datas 
+            if(role.toUpperCase() === 'ALL' && name==='') datas = await Account.find({role:{$not:{$regex:'manager'}},disable:isDisabled})
+            else if(role.toUpperCase() === 'ALL' && name!=='') datas = await Account.find({role:{$not:{$regex:'manager'}},
+                disable:isDisabled,$or:[{_id:mongoose.Types.ObjectId.isValid(name) ? mongoose.Types.ObjectId(name) : null },{name:{$regex:new RegExp(name,'i')}}]})
+            else if(role.toUpperCase() !== 'ALL' && name!=='') datas = await Account.find({role:role,disable:isDisabled,$or:[
+                {_id:mongoose.Types.ObjectId.isValid(name) ? mongoose.Types.ObjectId(name) : null },{name:{$regex:new RegExp(name,'i')}}
+            ]})
+            else datas = await Account.find({role:role,disable:isDisabled})
+            if(datas) return res.status(200).json({
+                title:'success',
+                success:true,
+                data:datas
+            })
+            return  res.send('dont find account' )
+        } catch (error) {
+            console.log(error);
+        }
+
+    }
+
+    async disableAccount(req, res,next){
+        const id = req.body.listID || [];
+        const isDisabled = req.body.isDisabled
+        Account.updateMany({_id:{$in:id}},{$set:{disable:!isDisabled}}, { returnOriginal: false })
+            .then(data=>{
+                Account.find({_id:{$in:id}},{_id:1})
+                    .then(account => res.status(200).json(
+                      {
+                        title:'success',
+                        success:true,
+                        data:account
+                      }
+                    ))
+                    .catch(next)
+            })
             .catch(next)
     }
 
