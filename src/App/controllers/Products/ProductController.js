@@ -1,5 +1,6 @@
 const Product = require('../../models/Product')
 const serverPort = require('../../../utils/serverPort')
+const mongoose  = require('mongoose')
 const serverName = require('os').hostname()
 const fs = require('fs')
 
@@ -83,7 +84,18 @@ class ProductController {
                 .then(data => res.status(200).json({title:'success',success:true,data}))
                 .catch(next)
         }
+    }
 
+    async delete(req, res, next) {
+        try {
+            const id = req.body.id;
+            const data = await Product.findOneAndDelete({ _id: id });
+            res.status(200).json({
+                title:'success',success:true,data
+            })
+        } catch (error) {
+            console.log(error);
+        }
     }
 }
 

@@ -171,7 +171,7 @@ class AccountController{
                 if(!data) res.json({message:"do not Find data !"})
                 data.refreshTokens = data.refreshTokens.filter(item => item !==token)
                 data.save();
-                res.clearCookie('avatar').clearCookie('name').clearCookie('email').clearCookie('phoneNumber').clearCookie('birthday').clearCookie('sex').clearCookie('id').clearCookie('address').clearCookie('userName')
+                res.clearCookie('avatar').clearCookie('name').clearCookie('email').clearCookie('phoneNumber').clearCookie('birthday').clearCookie('sex').clearCookie('id').clearCookie('address').clearCookie('userName').clearCookie('role')
                 return res.json({message:'login successful'})
             })
     }
@@ -242,17 +242,17 @@ class AccountController{
                 account.save()
                     .then(data=>{
                         for (const key in objectFields) {
-                            res.cookie('id',data._id,{
+                            // res.cookie('id',data._id,{
                     
-                            }).cookie('userName',data.userName,{
+                            // }).cookie('userName',data.userName,{
                                 
-                            }).cookie('name',data.name||'')
-                            .cookie('phoneNumber',data.phoneNumber||'')
-                            .cookie('avatar',data.avatar||'')
-                            .cookie('email',data.email||'')
-                            .cookie('birthday',data.birthday||'')
-                            .cookie('sex',data.sex||'')
-                            .cookie('address',data.address||'')    
+                            // }).cookie('name',data.name||'')
+                            // .cookie('phoneNumber',data.phoneNumber||'')
+                            // .cookie('avatar',data.avatar||'')
+                            // .cookie('email',data.email||'')
+                            // .cookie('birthday',data.birthday||'')
+                            // .cookie('sex',data.sex||'')
+                            // .cookie('address',data.address||'')    
                             res.cookie(key,objectFields[key])
                         }
                         res.status(200).json({...objectFields,success:true})

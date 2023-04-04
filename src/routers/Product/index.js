@@ -9,6 +9,7 @@ const authenToken = require('../../utils/authenToken');
 
 
 router.post('/upload-product',uploadFile().array('imageName',7),authenToken,employee,ProductController.uploadProduct)
+router.delete('/delete',ProductController.delete)
 
 router.get('/get-product',ProductController.getProduct) 
 router.get('/open-image',ProductController.getImage)
