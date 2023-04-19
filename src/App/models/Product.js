@@ -15,6 +15,8 @@ const Product = new Schema(
         product:{type:Array},
         number:Number,
         color:Array,
+        numberFeedback:{type:Number,default:0,min:0},
+        starAverage: {type:Number,min:0,default:0},
         createdAt: { type: Date, default: Date.now },
         updatedAt: { type: Date, default: Date.now },
         slug: { type: String, slug: "name",unique: true},
