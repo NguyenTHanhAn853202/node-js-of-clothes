@@ -9,7 +9,7 @@ const Account = new Schema(
     {
         userName: { type: String,required: true},
         password:{type:String,required:true},
-        name:{type:String,maxLength:40,default:null},
+        name:{type:String,maxLength:40,default:'Chưa có tên'},
         avatar:{type:String,default:`http://${serverName}:${serverPort}/product/open-image?image=avatarDefault.jpg`},
         phoneNumber:{type:String,maxLength:15,default:null},
         birthday:{type:Date,default:null},

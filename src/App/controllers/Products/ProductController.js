@@ -1,6 +1,5 @@
 const Product = require('../../models/Product')
 const serverPort = require('../../../utils/serverPort')
-const mongoose  = require('mongoose')
 const serverName = require('os').hostname()
 const fs = require('fs')
 

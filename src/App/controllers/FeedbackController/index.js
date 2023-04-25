@@ -3,8 +3,9 @@ const FavouriteFeedback = require('../../models/FavouriteFeedback')
 const Feedback  = require('../../models/Feedback');
 const isValidID = require('../../../utils/isValidID');
 const Product = require('../../models/Product');
+const serverPort = require('../../../utils/serverPort');
+const serverName = require('os').hostname()
 
-const LIMIT = 5;
 
 class FeedbackController{
     // user write feedback
@@ -51,10 +52,12 @@ class FeedbackController{
             const stars = Number(req.body.stars)
             const userID = isValidID(req.body.userID)
             const idProduct = isValidID(req.body.idProduct)
-            const comment = req.body?.comment|| 'Người dùng không viết đánh giá'
+            const comment = req.body?.comment
+            const fileImages = req.files
+            const images = fileImages.map(item=>`http://${serverName}:${serverPort}/product/open-image?image=${item.filename}` )
             const product = await Product.findById(idProduct)           
             if(stars >0 && userID && idProduct && product){
-                const data = await Feedback.create({userID,idProduct,comment,stars})
+                const data = await Feedback.create({userID,idProduct,comment,stars,image:images})
                 const starAverage = (product.starAverage*product.numberFeedback+stars)/(product.numberFeedback + 1)
                 await Product.updateOne({_id:idProduct},{$inc:{numberFeedback:1},$set:{starAverage:starAverage}})
                 
@@ -84,8 +87,7 @@ class FeedbackController{
             const product = await Product.findById(idProduct)
             const feedback = await Feedback.findById(idFeedback)        
             if(product && feedback){
-                const starAverage = (product?.starAverage*product?.numberFeedback-feedback?.stars)/(product?.numberFeedback - 1)
-                console.log(product,feedback);
+                const starAverage = product?.numberFeedback !==1?(product?.starAverage*product?.numberFeedback-feedback?.stars)/(product?.numberFeedback - 1):0
                 await Product.updateOne({_id:idProduct},{$inc:{numberFeedback:-1},$set:{starAverage:starAverage}})
                 const data = await Feedback.deleteOne({userID,idProduct,_id:idFeedback})
                 if(data.acknowledged && data.deletedCount) return res.status(200).json({
@@ -148,12 +150,22 @@ class FeedbackController{
             const start = (page -1)*perPage
             let newData = []
             const idProduct = isValidID(req.query.idProduct)
-            const data = await Feedback.find({idProduct}).skip(start).limit(perPage).populate('userID','avatar name')
+            const _sort = req.query.sort?req.query.sort.trim().toLowerCase() : 'all'
+            let data;
+            if(_sort.includes('star')) 
+                data = await Feedback.find({idProduct,stars:Number(_sort[0])}).skip(start).limit(perPage).populate('userID','avatar name');
+            else if(_sort==='image')
+                data = await Feedback.find({idProduct,$where:function(){
+                    return this.image.length>0
+                }}).skip(start).limit(perPage).populate('userID','avatar name');
+            else if(_sort==='hascomment') data = await Feedback.find({idProduct,comment:{$nin:['',null]}}).skip(start).limit(perPage).populate('userID','avatar name');
+            else data = await Feedback.find({idProduct}).skip(start).limit(perPage).populate('userID','avatar name');
+            
             for (let index = 0; index < data.length; index++) {
                 const liked = await FavouriteFeedback.find({ idFeedback: data[index]._id, userID: userID });
                 newData = [...newData,{...data[index]._doc,liked:liked.length?true:false}]
             }
-           
+            
             return res.status(200).json({
                 success:true,
                 title:'success',
