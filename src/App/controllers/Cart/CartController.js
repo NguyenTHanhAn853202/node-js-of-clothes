@@ -72,23 +72,28 @@ class CartController {
 
     // delete a product in cart
     async delete(req, res, next) {
-        const id = req.body.id;
-        await Cart.deleteOne({ _id: id})
-            .then(data => {
-                if(!data) return res.status(403).json({
-                    success:false,
-                    title:'error',
-                    message: 'check info'
-                })               
-            })
-            .catch(err=> res.send(err))
-        await Cart.find().populate('idProduct','name slug')
-            .then(data=> res.status(200).json({
-                success: true,
-                title:'success',
-                data
-            }))
-            .catch(next)
+        try {
+            const id = req.body.id
+            const userID = req.body.userID
+            await Cart.deleteOne({ _id: id,userID})
+                .then(data => {
+                    if(!data) return res.status(403).json({
+                        success:false,
+                        title:'error',
+                        message: 'check info'
+                    })               
+                })
+                .catch(err=> res.send(err))
+            await Cart.find({userID}).populate('idProduct','name slug')
+                .then(data=> res.status(200).json({
+                    success: true,
+                    title:'success',
+                    data
+                }))
+                .catch(next)
+        } catch (error) {
+            res.send(error)
+        }
     }
 }
 

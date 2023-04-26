@@ -14,10 +14,23 @@ class ProductController {
             .catch(next)
     }
 
-    getOne(req, res, next){
-        Product.find({slug: req.query.slug})
-            .then(data=>res.json(...data))
-            .catch(next)
+    async getOne(req, res, next){
+        try {
+            const slug =req.query.slug || ''
+            const data = await Product.findOne({slug:slug })
+            const suggestion =  await Product.find({type:data.type,slug:{$ne:slug}}).limit(10)
+            res.json({
+                title:'success',
+                success:true,
+                data:{
+                    data,
+                    suggestion
+                }
+            })
+        } catch (error) {
+            res.send(error)
+        }
+        
     }
 
     getProduct(req, res, next){
