@@ -3,6 +3,7 @@ const {accessTokenSecret,refreshTokenSecret} = require('../../../utils/keySecret
 const jwt = require('jsonwebtoken')
 const serverPort = require('../../../utils/serverPort')
 const mongoose  = require('mongoose')
+const isValidID = require('../../../utils/isValidID')
 const serverName = require('os').hostname()
 
 const isEmail = /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
@@ -322,6 +323,44 @@ class AccountController{
                     .catch(next)
             })
             .catch(next)
+    }
+
+    async changePassword(req,res,next) {
+        try {
+            const userName = req.body.userName
+            const userID = isValidID(req.body.userID)
+            const oldPassword = req.body.oldPassword
+            const newPassword = req.body.newPassword
+            const reNewPassword = req.body.reNewPassword
+            if(reNewPassword !== newPassword) return  res.status(200).json({
+                title:'error',
+                success:false,
+                message:"Mật khẩu mới không trùng khớp"
+            })  
+            const account = await Account.updateOne({userName,_id:userID,password:oldPassword},{password:newPassword});
+
+            if(account.modifiedCount) return res.status(200).json({
+                success: true,
+                title:'success',
+                message:'Đổi mật khẩu thành công'
+            })
+
+            if(account.matchedCount && !account.modifiedCount) return res.status(200).json({
+                success: false,
+                title:'error',
+                message:'Mật khẩu mới và mật khẩu củ giống nhau'
+            })
+
+            return res.status(200).json({
+                success:false,
+                title:'error',
+                message:'Mật khẩu củ hoặc thông tin sai'
+            })
+
+       
+        } catch (error) {
+            res.send(error)
+        }
     }
 
 

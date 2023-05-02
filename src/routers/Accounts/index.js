@@ -17,6 +17,7 @@ router.post('/create',AccountController.register)
 router.post('/create-manager',authenToken,manager,AccountController.registerManager)
 
 router.post('/login',AccountController.login)
+router.post('/change-password',AccountController.changePassword)
 router.post('/logout',AccountController.logout)
 router.post('/refreshTokens',AccountController.refreshToken)
 router.post('/create-account-employee',authenToken,AccountController.createAccountForEmployee)
