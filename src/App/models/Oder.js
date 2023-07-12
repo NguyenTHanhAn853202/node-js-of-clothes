@@ -11,6 +11,7 @@ const OderSchema = new Schema(
         },
         typeOfPayment: {type: String, required: true},
         codeDiscount: {type: String},
+        isPaid:{type:Boolean, default: false},
         createdAt: { type: Date, default: Date.now },
         updatedAt: { type: Date, default: Date.now },
     },
@@ -19,5 +20,12 @@ const OderSchema = new Schema(
         timeseries: true
     },
 );
+
+OderSchema.query.sortable = function(req){
+        const type = ['asc','desc'].includes(req.query?.type)?req.query?.type:'desc'
+        return this.sort({
+            [req.query.column]:type
+        })
+}
 
 module.exports = mongoose.model('Oder', OderSchema);

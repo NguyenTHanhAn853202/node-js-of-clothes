@@ -7,7 +7,6 @@ const handleRole = async(req, res, next)=>{
     //     success:false,
     //     message:'the id is empty'
     // })
-    console.log(id);
     const account  = await Account.findOne({_id:id})
     // if(!account) return res.status(403).json({
     //     title:'Error',
@@ -29,6 +28,7 @@ async function manager(req,res,next){
 
 async function employee(req, res, next){
     const role = await handleRole(req, res, next)
+    console.log(role);
    if(role){
         if(role!=='manager' && role!=='employee') return res.status(403).json({
             title:'Error',

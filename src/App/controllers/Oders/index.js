@@ -1,4 +1,4 @@
-const OderSchema = require('../../models/Oder')
+const OrderSchema = require('../../models/Oder')
 const Account = require('../../models/Accounts')
 const Bought = require('../../models/Bought')
 const Cart = require('../../models/Cart')
@@ -21,7 +21,7 @@ class OderController {
                 message:'input infoOfOder or userID'
             })
         }
-        const newOder = new OderSchema({infoOfOder: infoOfOder,infoOfUser:userID,typeOfPayment,codeDiscount})
+        const newOder = new OrderSchema({infoOfOder: infoOfOder,infoOfUser:userID,typeOfPayment,codeDiscount})
         if(newOder){
             newOder.save()
                 .then(data=>{
@@ -46,7 +46,7 @@ class OderController {
         if(id){
             res.json({title:'error',success:false,message:'input id, please'})
         }
-        OderSchema.find({_id:id}).populate('infoOfUser','name email phoneNumber')
+        OrderSchema.find({_id:id}).populate('infoOfUser','name email phoneNumber')
             .then(data => res.status(200).json({
                 title:'get info oder',
                 success:true,
@@ -54,6 +54,41 @@ class OderController {
                 data
             }))
             .catch(next)
+    }
+
+    // be paid by banking
+
+    async banking(req, res,next) {
+        const {userID, infoOfOder} = req.body;
+
+        const newOrder = new OrderSchema({infoOfOder: infoOfOder,infoOfUser:userID,typeOfPayment:'banking'})
+        if(newOrder){
+            const data = await newOrder.save()
+            return res.status(200).json({
+                title:'success',
+                success:true,
+                data:data
+            })
+        }
+        return res.status(200).json({
+            success:false,
+            title:'error',
+            data:[]
+        })
+    }
+
+    async showOrder(req, res,next) {
+        const data  = await OrderSchema.find().sortable(req).populate('infoOfUser','-password')
+        if(data) return res.status(200).json({
+            success:true,
+            title:"success",
+            data:data
+        })
+        return res.status(200).json({
+            success:false,
+            title:'error',
+            data:[]
+        })
     }
 }
 

@@ -1,5 +1,5 @@
 const Product = require('../../models/Product')
-const removeDiacritics = require('remove-diacritics')
+
 
 class SearchController{
     

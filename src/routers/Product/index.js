@@ -6,6 +6,7 @@ const router = express.Router();
 const uploadFile = require('../../utils/uploadFiles')
 const {employee} = require('../../utils/roles');
 const authenToken = require('../../utils/authenToken');
+const SuggestController = require('../../App/controllers/Products/SuggestController');
 
 
 router.post('/upload-product',uploadFile().array('imageName',7),authenToken,employee,ProductController.uploadProduct)
@@ -17,6 +18,8 @@ router.get('/get-one-product',ProductController.getOne)
 router.get('/get-products',ProductController.get)
 router.get('/search',searchController.index)
 router.get('/type',ProductController.getType)
+
+router.get('/new-product',SuggestController.newProduct)
 
 
 module.exports = router
