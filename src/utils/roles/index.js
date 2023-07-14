@@ -28,7 +28,6 @@ async function manager(req,res,next){
 
 async function employee(req, res, next){
     const role = await handleRole(req, res, next)
-    console.log(role);
    if(role){
         if(role!=='manager' && role!=='employee') return res.status(403).json({
             title:'Error',

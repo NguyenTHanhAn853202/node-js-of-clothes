@@ -2,6 +2,7 @@ const OrderSchema = require('../../models/Oder')
 const Account = require('../../models/Accounts')
 const Bought = require('../../models/Bought')
 const Cart = require('../../models/Cart')
+const isValidID = require('../../../utils/isValidID')
 const limit = 10
 class OderController {
     
@@ -89,6 +90,27 @@ class OderController {
             title:'error',
             data:[]
         })
+    }
+
+    async confirm(req, res, next) {
+        const id = isValidID(req.body.idOrder)
+        const idInfoOrder = req.body.idInfoOrder
+        if(id) {
+            const data = await OrderSchema.findOne({_id:id})
+            const newData = data.infoOfOder.filter(item=>item._id !== idInfoOrder)
+            data.infoOfOder = newData
+            const dataSave = await data.save();
+            return res.status(200).json({
+                success:true,
+                title:'confirming successfully',
+                data:dataSave
+            })
+        }
+        return res.status(200).json({
+            title:'error',
+            title:'the ID is not exist'
+        })
+
     }
 }
 
